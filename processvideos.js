@@ -24,7 +24,7 @@ module.exports = function(inputData){
             let videosRemoved = [];
             // Try busting the videos into the caches. Its not necessarily successful, so keep that in mind.
             for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex){
-                let video = endPoint.videosSortedByPopularityInNode[videoIndex];
+                let video = endPoint.videosSortedByPopularityInNode[videoIndex].videoReference;
                 if (placeToNearestCache(video, endPoint.videosSortedByPopularityInNode)){
                     videosRemoved.push(video.id);
                 }                
@@ -37,12 +37,22 @@ module.exports = function(inputData){
     }
 
 
-    // let magicNumberForEndPointLatencyDistribution = endPointsByPopularity[0] + endPointsByPopularity[endPointsByPopularity.length-1]/2;
-        
+    let magicNumberForEndPointLatencyDistribution = 0.5;
+    try{
+        let ratio = (endPointsByPopularity[0].latencyToDataCenter / endPointsByPopularity[endPointsByPopularity.length-1].latencyToDataCenter);
+        if (isFinite(ratio)){
+            magicNumberForEndPointLatencyDistribution = ratio;
+        }
+    }
+    catch(e){
+        // HAAAAHHH
+    }
+
     function howManyVideosCanThisEndpointHaz(iteationCycle, endPointIndex, endPoint){
-        
+        // magic number to one scaling: magic to 1
+        let howMany = math.ceil(magicNumberForEndPointLatencyDistribution * endPoint.latencyToDataCenter);
         if (iteration == 0){
-            return firstRoundHowMany; 
+            return howMany; 
         }
         else{
             return 1;
@@ -51,14 +61,24 @@ module.exports = function(inputData){
 
     function placeToNearestCache(video, endPoint){
         for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServersSortedByLatencyAsc.length; ){
-            let cacheServer = endPoint.accessibleCacheServersSortedByLatencyAsc[cacheServerIndex].cacheServerReference;
-            if (cacheServer.remainingSize > video.size){
-                cacheServer.remainingSize -= video.size;
-                cacheServer.videoList.push(video);
-                return true;
-            }
+            
+            let cacheServerWithLatencyToDataCenter = endPoint.accessibleCacheServersSortedByLatencyAsc[cacheServerIndex];                        
+            let cacheServer = cacheServerWithLatencyToDataCenter.cacheServerReference;
+
+            // Only put it there, if it worths it.
+            if (worthCachingVideoToCacheServer(endPoint, cacheServerWithLatencyToDataCenter) &&
+                cacheServer.remainingSize > video.size){
+                    cacheServer.remainingSize -= video.size;
+                    cacheServer.videoList.push(video);
+                    return true;
+                }
         }            
         return false;
+    }
+
+    
+    function worthCachingVideoToCacheServer(endpoint, serverWithLatency){
+         return endpoint.latencyToDataCenter > serverWithLatency.latencyToCacheServer
     }
 
     // remove not used servers.
@@ -67,6 +87,8 @@ module.exports = function(inputData){
     });
 
     return cacheServers;
+
+
 }
 
 
