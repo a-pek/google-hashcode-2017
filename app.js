@@ -14,7 +14,7 @@ fs.readdir(testFolder, (err, files) => {
 
     let outputData = processVideos(data);
 
-    output(outputData, file + '.output.txt');
+    output(outputData, 'output/' + file + '.output.txt');
 
   });
 })
