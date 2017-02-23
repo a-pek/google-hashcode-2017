@@ -19,17 +19,20 @@ module.exports = function(inputData){
 
             let endPoint = endPointsByPopularity[endPointIndex];
             let howManyVideosCanIHaz = howManyVideosCanThisEndpointHaz(i, endPointIndex, endPoint);
-            
-            let videosRemoved = []
+                        
+            let videosRemoved = [];
+            // Try busting the videos into the caches. Its not necessarily successful, so keep that in mind.
             for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex){
                 let video = endPoint.videosSortedByPopularityInNode[videoIndex];
                 if (placeToNearestCache(video, endPoint.videosSortedByPopularityInNode)){
-                    videosRemoved.push(video)
-                }
-
+                    videosRemoved.push(video.id)
+                }                
             }
+            // Filter out videos which we just removed, so we do not cache them again.
+            endPoint.videosSortedByPopularityInNode = endPoint.videosSortedByPopularityInNode.filter(function(video){
+                return videosRemoved.indexOf(video.id)==-1;
+            })
         }
-
     }
 
 
@@ -47,45 +50,54 @@ module.exports = function(inputData){
 
     function placeToNearestCache(video, endPoint){
         for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServers.length; ){
-            if (endPoint.accessibleCacheServers[cacheServerIndex].remainingSize > video.size){
-                videoList.push(video);
+            let cacheServer = endPoint.accessibleCacheServers[cacheServerIndex];
+            if (cacheServer.remainingSize > video.size){
+
+                cacheServer.videoList.push(video);
                 return true;
             }
-        }
-            
+        }            
         return false;
     }
 
-    cacheServers: [
-    {
-        id: 1,
-        size: 333, 
-        remainingSize: 333,
-        videoList: []
-    }    
-    ],
-    
-endPoints: [
-    {
-        latencyToDataCenter: 123, // in millisec
-        videos: [
-                {
-                    id: 333, // videoid
-                    size: 111, // in MB
-                    
-                    },
-                    ...
-                
-            ],
-        accessibleCacheServers: [
-            {
-                id: 1435,  // cacheServerId (or index)
-                size: 444 //in MB
-                },
-                ...
-            ]    
-        }
-    ]
+    // remove not used servers.
+    cacheServers = cacheServers.filter(function(server){
+        return server.videoList.length;
+    })
 
-    return { pina: 'hahh!'}
+    return cacheServers;
 }
+
+
+
+//     cacheServers: [
+//     {
+//         id: 1,
+//         size: 333, 
+//         remainingSize: 333,
+//         videoList: []
+//     }    
+//     ],
+    
+// endPoints: [
+//     {
+//         latencyToDataCenter: 123, // in millisec
+//         videos: [
+//                 {
+//                     id: 333, // videoid
+//                     size: 111, // in MB
+                    
+//                     },
+//                     ...
+                
+//             ],
+//         accessibleCacheServers: [
+//             {
+//                 id: 1435,  // cacheServerId (or index)
+//                 size: 444 //in MB
+//                 },
+//                 ...
+//             ]    
+//         }
+//     ]
+
