@@ -5,13 +5,26 @@ let _ = require('underscore');
 let processVideos = require('./processvideos');
 let output = require('./output');
 
+const testFolder = './input-data-set/';
+const fs = require('fs');
+fs.readdir(testFolder, (err, files) => {
+  files.forEach(file => {
+    console.log(file);
+    let data = inputData('./input-data-set/' + file);
+
+    let outputData = processVideos(data);
+
+    output(outputData, file + '.output.txt');
+
+  });
+})
+
 //let data = inputData(process.argv[2]);
 let data = inputData('./input-data-set/me_at_the_zoo.in');
 
 let outputData = processVideos(data);
 
 output(outputData);
-
 
 function inputData(fileName){
     let cacheServers = [];
@@ -72,7 +85,7 @@ function inputData(fileName){
 
 
     });
-    console.log({cacheServers, endPoints, videos});
+    // console.log({cacheServers, endPoints, videos});
     return {cacheServers, endPoints, videos};
 
 }
