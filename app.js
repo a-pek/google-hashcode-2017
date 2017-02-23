@@ -7,17 +7,17 @@ let output = require('./output');
 
 const testFolder = './input-data-set/';
 const fs = require('fs');
-fs.readdir(testFolder, (err, files) => {
-  files.forEach(file => {
-    console.log(file);
-    let data = inputData('./input-data-set/' + file);
-
-    let outputData = processVideos(data);
-
-    output(outputData, 'output/' + file + '.output.txt');
-
-  });
-})
+// fs.readdir(testFolder, (err, files) => {
+//   files.forEach(file => {
+//     console.log(file);
+//     let data = inputData('./input-data-set/' + file);
+//
+//     let outputData = processVideos(data);
+//
+//     output(outputData, 'output/' + file + '.output.txt');
+//
+//   });
+// })
 
 //let data = inputData(process.argv[2]);
 let data = inputData('./input-data-set/me_at_the_zoo.in');
@@ -44,11 +44,12 @@ function inputData(fileName){
 
 
     let rawData = readFileSync(fileName, 'utf8').split('\n');
-    rawData.forEach( (line, index) => {
-        var numberOfConnectedCacheServers, latencyToDataCenter, lineData, processedEndpoints = 0;
+    let numberOfConnectedCacheServers, latencyToDataCenter, lineData, processedEndpoints, numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize, newEndPoint;
 
+    rawData.forEach( (line, index) => {
         if(index === 0) {
-            var [numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize] = line.split(' ').map(Number);
+            [numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize] = line.split(' ').map(Number);
+            processedEndpoints = 0;
         } else if(index === 1 ) {
             videos = line.split(' ').map((size, id) => {
                 return {id, size: Number(size)};
@@ -56,9 +57,9 @@ function inputData(fileName){
         } else if(index > 1 && processedEndpoints < numberOfEndpoints) {
             if (numberOfConnectedCacheServers === undefined || numberOfConnectedCacheServers === 0) {
                 lineData = line.split(' ').map(Number);
-                latencyToDataCenter = lineData[0]
+                latencyToDataCenter = lineData[0];
                 numberOfConnectedCacheServers = lineData[1];
-                var newEndPoint = {
+                newEndPoint = {
                     id: index,
                     latencyToDataCenter: Number(latencyToDataCenter),
                     videos: [],
@@ -74,6 +75,7 @@ function inputData(fileName){
                 numberOfConnectedCacheServers--;
                 if (numberOfConnectedCacheServers === 0) {
                     processedEndpoints++;
+                    endPoints.push(newEndPoint);
                 }
             }
         } else if(index > 1 + numberOfEndpoints) {
@@ -85,7 +87,7 @@ function inputData(fileName){
 
 
     });
-    // console.log({cacheServers, endPoints, videos});
+    console.log({cacheServers, endPoints, videos});
     return {cacheServers, endPoints, videos};
 
 }
