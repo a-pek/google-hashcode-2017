@@ -2,15 +2,15 @@
 let {readFileSync} = require('fs');
 let _ = require('underscore');
 
-//let processVideos = require('./processvideos');
+let processVideos = require('./processvideos');
 let output = require('./output');
 
 //let data = inputData(process.argv[2]);
 let data = inputData('./input-data-set/me_at_the_zoo.in');
 
-//let outputData = processVideos(data);
+let outputData = processVideos(data);
 
-//output(outputData);
+output(outputData);
 
 
 function inputData(fileName){

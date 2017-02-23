@@ -2,7 +2,7 @@ let fs = require('fs');
 
 module.exports = function(data, fileName){ // This is the cache server data
 
-    let fileName = fileName || 'output.txt';
+    fileName = fileName || 'output.txt';
 
     let outputString = data.length + '\n';
 
