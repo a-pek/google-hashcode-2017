@@ -8,10 +8,11 @@ module.exports = function(inputData){
     let endPointsByPopularity = _.sortBy(endPoints, 'latencyToDataCenter').reverse();
     endPointsByPopularity.map(function(endPoint){
         endPoint.videosSortedByPopularityInNode = _.sortBy(endPoint.videos, 'predictedRequests').reverse();
+        endPoint.accessibleCacheServersSortedByLatencyAsc = _.sortBy(endPoint.accessibleCacheServers, 'latencyToCacheServer');
     });
 
-    let maxIterationCycles = 5;     // MAGIC 1: it would be nice to get this from the data.
-    let firstRoundHowMany = 5;      // MAGIC 2: number of the first cycle's iteration 
+    let maxIterationCycles = 15;     // MAGIC 1: it would be nice to get this from the data.
+    let firstRoundHowMany = 3;      // MAGIC 2: number of the first cycle's iteration 
 
     for(var i = 0; i<maxIterationCycles; i++){
         
@@ -25,7 +26,7 @@ module.exports = function(inputData){
             for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex){
                 let video = endPoint.videosSortedByPopularityInNode[videoIndex];
                 if (placeToNearestCache(video, endPoint.videosSortedByPopularityInNode)){
-                    videosRemoved.push(video.id)
+                    videosRemoved.push(video.id);
                 }                
             }
             // Filter out videos which we just removed, so we do not cache them again.
@@ -49,10 +50,10 @@ module.exports = function(inputData){
     }
 
     function placeToNearestCache(video, endPoint){
-        for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServers.length; ){
-            let cacheServer = endPoint.accessibleCacheServers[cacheServerIndex];
+        for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServersSortedByLatencyAsc.length; ){
+            let cacheServer = endPoint.accessibleCacheServersSortedByLatencyAsc[cacheServerIndex].cacheServerReference;
             if (cacheServer.remainingSize > video.size){
-
+                cacheServer.remainingSize -= video.size;
                 cacheServer.videoList.push(video);
                 return true;
             }
@@ -63,7 +64,7 @@ module.exports = function(inputData){
     // remove not used servers.
     cacheServers = cacheServers.filter(function(server){
         return server.videoList.length;
-    })
+    });
 
     return cacheServers;
 }
