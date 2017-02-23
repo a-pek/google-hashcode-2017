@@ -50,7 +50,7 @@ module.exports = function(inputData){
 
     function howManyVideosCanThisEndpointHaz(iteationCycle, endPointIndex, endPoint){
         // magic number to one scaling: magic to 1
-        let howMany = math.ceil(magicNumberForEndPointLatencyDistribution * endPoint.latencyToDataCenter);
+        let howMany = Math.ceil(magicNumberForEndPointLatencyDistribution * endPoint.latencyToDataCenter);
         if (iteration == 0){
             return howMany; 
         }
