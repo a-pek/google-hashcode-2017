@@ -44,7 +44,7 @@ function inputData(fileName){
 
 
     let rawData = readFileSync(fileName, 'utf8').split('\n');
-    let numberOfConnectedCacheServers, latencyToDataCenter, lineData, processedEndpoints, numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize, newEndPoint;
+    let numberOfConnectedCacheServers, latencyToDataCenter, lineData, processedEndpoints, numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize, newEndPoint, actualEndPointId;
 
     rawData.forEach( (line, index) => {
         if(index === 0) {
@@ -59,8 +59,9 @@ function inputData(fileName){
                 lineData = line.split(' ').map(Number);
                 latencyToDataCenter = lineData[0];
                 numberOfConnectedCacheServers = lineData[1];
+                actualEndPointId = index;
                 newEndPoint = {
-                    id: index,
+                    id: actualEndPointId,
                     latencyToDataCenter: Number(latencyToDataCenter),
                     videos: [],
                     accessibleCacheServers: []
@@ -81,7 +82,7 @@ function inputData(fileName){
         } else if(index > 1 + numberOfEndpoints) {
             let [videoId, endpointId, requestNumber] = line.split(' ').map(Number);
             let video = videos.filter( (video)=> video.id == videoId )[0];
-            let endPoint = endPoints.filter( (endpoint) => endpoint.id == endpointId);
+            let endPoint = endPoints.filter( (endpoint) => endpoint.id == endpointId)[0];
             endPoint.videos.push({videoReference: video, numberOfRequests: requestNumber});
         }
 
