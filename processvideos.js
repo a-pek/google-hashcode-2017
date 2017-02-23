@@ -25,7 +25,7 @@ module.exports = function(inputData){
             // Try busting the videos into the caches. Its not necessarily successful, so keep that in mind.
             for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex){
                 let video = endPoint.videosSortedByPopularityInNode[videoIndex].videoReference;
-                if (placeToNearestCache(video, endPoint.videosSortedByPopularityInNode)){
+                if (placeToNearestCache(video, endPoint)){
                     videosRemoved.push(video.id);
                 }                
             }
@@ -37,21 +37,12 @@ module.exports = function(inputData){
     }
 
 
-    let magicNumberForEndPointLatencyDistribution = 0.5;
-    try{
-        let ratio = (endPointsByPopularity[0].latencyToDataCenter / endPointsByPopularity[endPointsByPopularity.length-1].latencyToDataCenter);
-        if (isFinite(ratio)){
-            magicNumberForEndPointLatencyDistribution = ratio;
-        }
-    }
-    catch(e){
-        // HAAAAHHH
-    }
-
+    var magicNumberForEndPointLatencyDistribution = 0.5;
+    
     function howManyVideosCanThisEndpointHaz(iteationCycle, endPointIndex, endPoint){
         // magic number to one scaling: magic to 1
-        let howMany = math.ceil(magicNumberForEndPointLatencyDistribution * endPoint.latencyToDataCenter);
-        if (iteration == 0){
+        let howMany = Math.ceil(magicNumberForEndPointLatencyDistribution * endPoint.latencyToDataCenter);
+        if (iteationCycle == 0){
             return howMany; 
         }
         else{
@@ -60,7 +51,7 @@ module.exports = function(inputData){
     }
 
     function placeToNearestCache(video, endPoint){
-        for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServersSortedByLatencyAsc.length; ){
+        for(let cacheServerIndex = 0; cacheServerIndex < endPoint.accessibleCacheServersSortedByLatencyAsc.length; cacheServerIndex ++ ){
             
             let cacheServerWithLatencyToDataCenter = endPoint.accessibleCacheServersSortedByLatencyAsc[cacheServerIndex];                        
             let cacheServer = cacheServerWithLatencyToDataCenter.cacheServerReference;
