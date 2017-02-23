@@ -11,7 +11,7 @@ module.exports = function(inputData){
         endPoint.accessibleCacheServersSortedByLatencyAsc = _.sortBy(endPoint.accessibleCacheServers, 'latencyToCacheServer');
     });
 
-    let maxIterationCycles = 15;     // MAGIC 1: it would be nice to get this from the data.
+    let maxIterationCycles = 5;     // MAGIC 1: it would be nice to get this from the data.
     let firstRoundHowMany = 3;      // MAGIC 2: number of the first cycle's iteration 
 
     for(var i = 0; i<maxIterationCycles; i++){
@@ -23,7 +23,7 @@ module.exports = function(inputData){
                         
             let videosRemoved = [];
             // Try busting the videos into the caches. Its not necessarily successful, so keep that in mind.
-            for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex){
+            for (var videoIndex = 0; videoIndex < howManyVideosCanIHaz; videoIndex ++){
                 let video = endPoint.videosSortedByPopularityInNode[videoIndex].videoReference;
                 if (placeToNearestCache(video, endPoint)){
                     videosRemoved.push(video.id);
