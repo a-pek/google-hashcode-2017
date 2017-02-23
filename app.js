@@ -4,6 +4,7 @@ let _ = require('underscore');
 
 let processVideos = require('./processvideos');
 let output = require('./output');
+let data;
 
 const testFolder = './input-data-set/';
 const fs = require('fs');
@@ -12,6 +13,8 @@ fs.readdir(testFolder, (err, files) => {
     console.log(file);
     let data = inputData('./input-data-set/' + file);
 
+    data = inputData('./input-data-set/' + file);
+    console.log(data);
     let outputData = processVideos(data);
 
     output(outputData, 'output/' + file + '.output.txt');
@@ -20,11 +23,11 @@ fs.readdir(testFolder, (err, files) => {
 })
 
 //let data = inputData(process.argv[2]);
-let data = inputData('./input-data-set/me_at_the_zoo.in');
+//let data = inputData('./input-data-set/me_at_the_zoo.in');
 
-let outputData = processVideos(data);
+//let outputData = processVideos(data);
 
-output(outputData);
+//output(outputData);
 
 function inputData(fileName){
     let cacheServers = [];
@@ -88,7 +91,6 @@ function inputData(fileName){
 
 
     });
-    console.log({cacheServers, endPoints, videos});
+    //console.log({cacheServers, endPoints, videos});
     return {cacheServers, endPoints, videos};
-
 }
