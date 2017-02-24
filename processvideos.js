@@ -58,7 +58,9 @@ module.exports = function(inputData){
 
             // Only put it there, if it worths it.
             if (worthCachingVideoToCacheServer(endPoint, cacheServerWithLatencyToDataCenter) &&
-                cacheServer.remainingSize > video.size){
+                cacheServer.remainingSize > video.size &&
+                !alreadyOnServer(video.id, cacheServer)
+                ){
                     cacheServer.remainingSize -= video.size;
                     cacheServer.videoList.push(video);
                     return true;
@@ -70,6 +72,10 @@ module.exports = function(inputData){
     
     function worthCachingVideoToCacheServer(endpoint, serverWithLatency){
          return endpoint.latencyToDataCenter > serverWithLatency.latencyToCacheServer
+    }
+
+    function alreadyOnServer(videoId, cacheServer){
+         return _.find(cacheServer.videoList, {id: videoId});
     }
 
     // remove not used servers.
