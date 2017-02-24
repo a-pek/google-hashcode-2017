@@ -1,6 +1,5 @@
 'use strict';
 let {readFileSync} = require('fs');
-let _ = require('underscore');
 
 let processVideos = require('./processvideos');
 let output = require('./output');
@@ -10,17 +9,14 @@ const testFolder = './input-data-set/';
 const fs = require('fs');
 fs.readdir(testFolder, (err, files) => {
   files.forEach(file => {
-    console.log(file);
-    let data = inputData('./input-data-set/' + file);
-
+    console.log('parsing input...', file);
     data = inputData('./input-data-set/' + file);
-    console.log(data);
+    console.log('processing....', file);
     let outputData = processVideos(data);
-
+    console.log('output...', file);
     output(outputData, 'output/' + file + '.output.txt');
-
   });
-})
+});
 
 //let data = inputData(process.argv[2]);
 //let data = inputData('./input-data-set/me_at_the_zoo.in');
