@@ -1,4 +1,4 @@
-const {readFileSync} = require('fs');
+const {readFileSync, writeFileSync} = require('fs');
 
 function inputData(fileName){
     let cacheServers = [];
@@ -18,29 +18,41 @@ function inputData(fileName){
 
 
     let rawData = readFileSync(fileName, 'utf8').split('\n');
-    let numberOfConnectedCacheServers, latencyToDataCenter, lineData, processedEndpoints, numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize, newEndPoint, actualEndPointId = 0;
+    let numberOfConnectedCacheServers, latencyToDataCenter, processedEndpoints, numberOfVideos, numberOfEndpoints,
+        numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize, newEndPoint, actualEndPointId = 0,
+        numberOfProcessedRequestDescription = 0;
 
+    let testIndex
     rawData.forEach( (line, index) => {
+        if(line == '') return;
         if(index === 0) {
-            [numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize] = line.split(' ').map(Number);
+            let lineData = line.split(' ').map(Number);
+            if(!lineData || lineData.length !== 5) { throw Error(`Error parsing first line, ${index+1}, ${line}`) };
+            [numberOfVideos, numberOfEndpoints, numberOfRequestDescriptions, numberOfCacheServers, cacheServerSize] = lineData;
             processedEndpoints = 0;
         } else if(index === 1 ) {
             videos = line.split(' ').map((size, id) => {
                 return {id, size: Number(size)};
             });
+            if(videos.length !== numberOfVideos) { throw Error(`Wrong no of videos ${videos.length} !== ${numberOfVideos}`) };
         } else if(index > 1 && processedEndpoints < numberOfEndpoints) {
             if (numberOfConnectedCacheServers === undefined || numberOfConnectedCacheServers === 0) {
-                lineData = line.split(' ').map(Number);
-                latencyToDataCenter = lineData[0];
-                numberOfConnectedCacheServers = lineData[1];
+                let lineData = line.split(' ').map(Number);
+                if(!lineData || lineData.length !== 2) { throw Error(`Error in processing endpoint data @ ${index+1}, ${line}`); }
+                [latencyToDataCenter, numberOfConnectedCacheServers] = lineData;
                 newEndPoint = {
                     id: actualEndPointId,
                     latencyToDataCenter: Number(latencyToDataCenter),
                     videos: [],
                     accessibleCacheServers: []
-                }
+                };
+                if(numberOfConnectedCacheServers === 0) { processedEndpoints++; actualEndPointId++}
             } else {
-                var [cacheServerId, latencyToCacheServer] = line.split(' ').map(Number);
+                let lineData = line.split(' ').map(Number);
+                if(!lineData || lineData.length !== 2 || lineData[0] >= numberOfCacheServers) {
+                    throw Error(`Error in processing endpoint cache data @ ${index + 1}, ${line}`);
+                }
+                var [cacheServerId, latencyToCacheServer] = lineData;
                 var cacheServer = getCacheServer(cacheServerId, cacheServerSize);
                 newEndPoint.accessibleCacheServers.push({
                     cacheServerReference: cacheServer,
@@ -53,17 +65,28 @@ function inputData(fileName){
                     actualEndPointId++;
                 }
             }
-        } else if(index > 1 + numberOfEndpoints && line !== '') {
-            let [videoId, endpointId, requestNumber] = line.split(' ').map(Number);
+        } else {
+            let lineData = line.split(' ').map(Number);
+            if(!lineData || lineData.length !== 3 || lineData[0] >= numberOfVideos || lineData[1] >= numberOfEndpoints) {
+                throw Error(`Error during request processing @ ${index+1}, ${line}`);
+            }
+            let [videoId, endpointId, requestNumber] = lineData;
             let video = videos.filter( (video)=> video.id == videoId )[0];
             let endPoint = endPoints.filter( (endpoint) => endpoint.id == endpointId)[0];
+            if(!endPoint) {
+                throw Error('sdkfjsdkl');
+            }
             endPoint.videos.push({videoReference: video, numberOfRequests: requestNumber});
         }
-
-
     });
-    //console.log({cacheServers, endPoints, videos});
+    if(cacheServers.length !== numberOfCacheServers || endPoints.length !== numberOfEndpoints) {
+        throw Error(`Final checksum not successful. cache servers: ${cacheServers.length}, endpoints: ${endPoints.length}, videos: ${videos.length}`);
+    }
     return {cacheServers, endPoints, videos};
 }
 
-module.exports = {inputData};
+const saveDataToJson = (data, fileName) => {
+    writeFileSync(fileName, JSON.stringify(data), 'utf8');
+};
+
+module.exports = {inputData, saveDataToJson};
